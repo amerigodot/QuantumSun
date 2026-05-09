@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casino Value Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --accent-primary: #8b5cf6;
+            --accent-secondary: #06b6d4;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.15) 0px, transparent 50%);
+            color: var(--text-primary);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            /* Changed to start to allow scrolling */
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
+
+        p.subtitle {
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .calculator {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        @media (max-width: 768px) {
+            .calculator {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .control {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control label {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        input[type="number"],
+        select {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+        }
+
+        input[type="number"]:read-only {
+            opacity: 0.7;
+            cursor: not-allowed;
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .sub-label {
+            font-size: 0.75rem;
+            margin-bottom: 0.2rem;
+            display: block;
+        }
+
+        .accent-a {
+            color: var(--accent-primary);
+        }
+
+        .accent-b {
+            color: var(--accent-secondary);
+        }
+
+        .results {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            justify-content: center;
+        }
+
+        .result-card {
+            background: rgba(15, 23, 42, 0.3);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid var(--glass-border);
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .result-value {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .profit-positive {
+            color:
+                /* var(--success) */
+                #10b981;
+        }
+
+        .profit-negative {
+            color:
+                /* var(--danger) */
+                #ef4444;
+        }
+
+        .cap-warning {
+            font-size: 0.7rem;
+            color: #fbbf24;
+            margin-left: 0.5rem;
+        }
+
+        /* --- Buttons --- */
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-outcome {
+            flex: 1;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .btn-a {
+            background: rgba(139, 92, 246, 0.2);
+            color: var(--accent-primary);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-a:hover {
+            background: rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-b {
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--accent-secondary);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+
+        .btn-b:hover {
+            background: rgba(6, 182, 212, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(148, 163, 184, 0.1);
+            color: var(--text-secondary);
+            margin-top: 1rem;
+            width: 100%;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(148, 163, 184, 0.2);
+            color: var(--text-primary);
+        }
+
+        /* --- History Table --- */
+        .history-section {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        th {
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.8rem;
+        }
+
+        td {
+            color: var(--text-primary);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Smart Hedge Calculator</h1>
+            <p class="subtitle">Optimize your 2 vs 1.95 bets with Capped Cashback</p>
+        </header>
+
+        <div class="calculator">
+            <div class="input-group">
+
+                <!-- Bet A -->
+                <div>
+                    <div class="section-title">Bet A (The 2.0 side)</div>
+                    <div class="control">
+                        <label>Odds</label>
+                        <input type="number" id="oddsA" value="2.00" step="0.01">
+                    </div>
+                    <div class="control" style="margin-top: 1rem;">
+                        <label>Stake Amount ($)</label>
+                        <input type="number" id="stakeA" value="100" step="1">
+                    </div>
+                </div>
+
+                <!-- Bet B -->
+                <div>
+                    <div class="section-title">Bet B (The 1.95 side)</div>
+                    <div class="control">
+                        <label>Odds</label>
+                        <input type="number" id="oddsB" value="1.95" step="0.01">
+                    </div>
+                    <div class="control" style="margin-top: 1rem;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                            <label>Stake Amount ($)</label>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="checkbox" id="autoCalculateB" checked style="width: auto; margin: 0;">
+                                <label for="autoCalculateB"
+                                    style="font-size: 0.8rem; color: var(--accent-secondary); cursor: pointer;">Auto-Calc
+                                    (Hedge)</label>
+                            </div>
+                        </div>
+                        <input type="number" id="stakeB" value="0" step="1">
+                    </div>
+                </div>
+
+                <!-- Cashback Settings -->
+                <div>
+                    <div class="section-title">Cashback / Bonus</div>
+                    <div class="control">
+                        <label>Applies To</label>
+                        <select id="cashbackMode">
+                            <option value="none">None</option>
+                            <option value="loss" selected>On Loss (Risk-Free / Rebate)</option>
+                            <option value="volume">On Volume (Turnover)</option>
+                        </select>
+                    </div>
+
+                    <div class="control" style="margin-top: 1rem;">
+                        <label>Configuration</label>
+                        <div class="grid-2">
+                            <div>
+                                <span class="sub-label accent-a">Side A %</span>
+                                <input type="number" id="rateA" value="0" step="1" placeholder="0">
+                            </div>
+                            <div>
+                                <span class="sub-label accent-a">Max Cap A ($)</span>
+                                <input type="number" id="capA" value="0" step="1" placeholder="0 (Unlimited)">
+                            </div>
+                        </div>
+                        <div class="grid-2" style="margin-top: 0.5rem;">
+                            <div>
+                                <span class="sub-label accent-b">Side B %</span>
+                                <input type="number" id="rateB" value="10" step="1" placeholder="0">
+                            </div>
+                            <div>
+                                <span class="sub-label accent-b">Max Cap B ($)</span>
+                                <input type="number" id="capB" value="50" step="1" placeholder="0 (Unlimited)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="results">
+
+                <!-- Result A -->
+                <div class="result-card">
+                    <div class="section-title">Scenario: Outcome A Wins</div>
+                    <div class="result-row">
+                        <span class="result-label">Winnings (A)</span>
+                        <span class="result-value" id="winA_winnings">$0.00</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">Loss (B)</span>
+                        <span class="result-value" id="winA_loss">-$0.00</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">Context Cashback</span>
+                        <span class="result-value">
+                            <span id="winA_cashback">$0.00</span>
+                            <span id="warn_capB" class="cap-warning" style="display:none;">(CAPPED)</span>
+                        </span>
+                    </div>
+                    <div class="result-row"
+                        style="margin-top: 0.5rem; border-top: 1px solid var(--glass-border); padding-top: 0.5rem;">
+                        <span class="result-label">Scenario Outcome Net Result</span>
+                        <span class="result-value" id="winA_net">$0.00</span>
+                    </div>
+                </div>
+
+                <!-- Result B -->
+                <div class="result-card">
+                    <div class="section-title">Scenario: Outcome B Wins</div>
+                    <div class="result-row">
+                        <span class="result-label">Winnings (B)</span>
+                        <span class="result-value" id="winB_winnings">$0.00</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">Loss (A)</span>
+                        <span class="result-value" id="winB_loss">-$0.00</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">Context Cashback</span>
+                        <span class="result-value">
+                            <span id="winB_cashback">$0.00</span>
+                            <span id="warn_capA" class="cap-warning" style="display:none;">(CAPPED)</span>
+                        </span>
+                    </div>
+                    <div class="result-row"
+                        style="margin-top: 0.5rem; border-top: 1px solid var(--glass-border); padding-top: 0.5rem;">
+                        <span class="result-label">Scenario Outcome Net Result</span>
+                        <span class="result-value" id="winB_net">$0.00</span>
+                    </div>
+                </div>
+
+                <!-- Summary & Actions -->
+                <div class="result-card"
+                    style="background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.3);">
+                    <div class="section-title">Summary</div>
+                    <div class="result-row">
+                        <span class="result-label">Total Staked</span>
+                        <span class="result-value" id="totalStake">$0.00</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">ROI (A Win / B Win)</span>
+                        <span class="result-value" id="roiDisplay">0% / 0%</span>
+                    </div>
+
+                    <div style="margin-top: 1rem;">
+                        <div
+                            style="text-align: center; color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 0.5rem;">
+                            RECORD RESULT</div>
+                        <div class="btn-group">
+                            <button class="btn-outcome btn-a" onclick="placeBet('A')">A WON</button>
+                            <button class="btn-outcome btn-b" onclick="placeBet('B')">B WON</button>
+                        </div>
+                        <button class="btn-secondary" onclick="resetHistory()">Reset History</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <div class="history-section" id="historySection" style="display: none;">
+            <div class="section-title" style="margin-bottom: 1.5rem; font-size: 1.2rem; color: var(--text-primary);">Bet
+                History</div>
+            <table id="historyTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Stake A / B</th>
+                        <th>Winner</th>
+                        <th>Net Profit</th>
+                        <th>Running Net</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody">
+                    <!-- Rows -->
+                </tbody>
+                <tfoot>
+                    <tr style="background: rgba(255,255,255,0.05); font-weight: 600;">
+                        <td colspan="3">TOTALS</td>
+                        <td id="histTotalNet" class="profit-positive">$0.00</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="5"
+                            style="text-align: right; color: var(--text-secondary); font-size: 0.8rem; padding-top: 0.5rem;">
+                            Total Volume: <span id="histVolume">$0.00</span>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        const inputs = document.querySelectorAll('input, select');
+        const stakeBInput = document.getElementById('stakeB');
+        const autoCalcCheckbox = document.getElementById('autoCalculateB');
+
+        let betHistory = [];
+        let runningNet = 0;
+
+        inputs.forEach(input => {
+            input.addEventListener('input', (e) => {
+                if (e.target === stakeBInput && autoCalcCheckbox.checked) {
+                    autoCalcCheckbox.checked = false;
+                }
+                calculate();
+            });
+        });
+
+        autoCalcCheckbox.addEventListener('change', calculate);
+
+        function formatCurrency(num) {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num);
+        }
+
+        // State for Last Calc
+        let currentCalc = {
+            netA: 0,
+            netB: 0,
+            stakeA: 0,
+            stakeB: 0,
+            totalStake: 0
+        };
+
+        function calculate() {
+            // ... (Existing Logic)
+            const oddsA = parseFloat(document.getElementById('oddsA').value) || 0;
+            const stakeA = parseFloat(document.getElementById('stakeA').value) || 0;
+            const oddsB = parseFloat(document.getElementById('oddsB').value) || 0;
+            const mode = document.getElementById('cashbackMode').value;
+            const rawRateA = parseFloat(document.getElementById('rateA').value) || 0;
+            const rawRateB = parseFloat(document.getElementById('rateB').value) || 0;
+            const capA = parseFloat(document.getElementById('capA').value) || 0;
+            const capB = parseFloat(document.getElementById('capB').value) || 0;
+            const rA = rawRateA / 100;
+            const rB = rawRateB / 100;
+
+            function getCB(amount, rate, cap) {
+                let cb = amount * rate;
+                if (cap > 0 && cb > cap) return cap;
+                return cb;
+            }
+
+            // Auto Calc
+            if (autoCalcCheckbox.checked && oddsB > 0) {
+                stakeBInput.readOnly = true;
+                let calcStakeB = 0;
+                if (mode === 'loss') {
+                    const cbA_uncapped = stakeA * rA;
+                    const cbA_real = (capA > 0 && cbA_uncapped > capA) ? capA : cbA_uncapped;
+                    const LHS = (stakeA * oddsA) - cbA_real;
+
+                    const denom1 = (oddsB - rB);
+                    let candB = 0;
+                    if (denom1 > 0) candB = LHS / denom1;
+
+                    // Check cap
+                    const cbB_est = candB * rB;
+                    if (capB > 0 && cbB_est > capB) {
+                        candB = (LHS + capB) / oddsB;
+                    }
+                    calcStakeB = candB;
+                } else {
+                    calcStakeB = (stakeA * oddsA) / oddsB;
+                }
+                stakeBInput.value = calcStakeB.toFixed(2);
+            } else {
+                stakeBInput.readOnly = false;
+            }
+
+            let stakeB = parseFloat(stakeBInput.value) || 0;
+            const totalStake = stakeA + stakeB;
+
+            // Scenarios
+            const returnA = stakeA * oddsA;
+            const profitA = returnA - stakeA;
+            const lossB_raw = stakeB;
+            let cashbackOnAWin = 0;
+            let capBHit = false;
+
+            if (mode === 'loss') {
+                cashbackOnAWin = getCB(lossB_raw, rB, capB);
+                if (capB > 0 && (lossB_raw * rB) > capB) capBHit = true;
+            } else if (mode === 'volume') {
+                cashbackOnAWin = getCB(stakeA, rA, capA) + getCB(stakeB, rB, capB);
+            }
+            const netA = profitA - lossB_raw + cashbackOnAWin;
+
+            const returnB = stakeB * oddsB;
+            const profitB = returnB - stakeB;
+            const lossA_raw = stakeA;
+            let cashbackOnBWin = 0;
+            let capAHit = false;
+
+            if (mode === 'loss') {
+                cashbackOnBWin = getCB(lossA_raw, rA, capA);
+                if (capA > 0 && (lossA_raw * rA) > capA) capAHit = true;
+            } else if (mode === 'volume') {
+                cashbackOnBWin = getCB(stakeA, rA, capA) + getCB(stakeB, rB, capB);
+            }
+            const netB = profitB - lossA_raw + cashbackOnBWin;
+
+            // Update UI
+            document.getElementById('winA_winnings').textContent = formatCurrency(returnA);
+            document.getElementById('winA_loss').textContent = '-' + formatCurrency(lossB_raw);
+            document.getElementById('winA_cashback').textContent = formatCurrency(cashbackOnAWin);
+            document.getElementById('warn_capB').style.display = capBHit ? 'inline' : 'none';
+
+            const elNetA = document.getElementById('winA_net');
+            elNetA.textContent = formatCurrency(netA);
+            elNetA.className = 'result-value ' + (netA >= 0 ? 'profit-positive' : 'profit-negative');
+
+            document.getElementById('winB_winnings').textContent = formatCurrency(returnB);
+            document.getElementById('winB_loss').textContent = '-' + formatCurrency(lossA_raw);
+            document.getElementById('winB_cashback').textContent = formatCurrency(cashbackOnBWin);
+            document.getElementById('warn_capA').style.display = capAHit ? 'inline' : 'none';
+
+            const elNetB = document.getElementById('winB_net');
+            elNetB.textContent = formatCurrency(netB);
+            elNetB.className = 'result-value ' + (netB >= 0 ? 'profit-positive' : 'profit-negative');
+
+            document.getElementById('totalStake').textContent = formatCurrency(totalStake);
+
+            const roiA = totalStake > 0 ? (netA / totalStake) * 100 : 0;
+            const roiB = totalStake > 0 ? (netB / totalStake) * 100 : 0;
+            document.getElementById('roiDisplay').textContent = `${roiA.toFixed(2)}% / ${roiB.toFixed(2)}%`;
+
+            // Save current calc state for History
+            currentCalc = {
+                stakeA,
+                stakeB,
+                netA,
+                netB,
+                totalStake
+            };
+        }
+
+        // --- History Functions ---
+
+        function placeBet(winner) {
+            if (currentCalc.totalStake <= 0) return;
+
+            const actualNet = winner === 'A' ? currentCalc.netA : currentCalc.netB;
+            runningNet += actualNet;
+
+            // Add proper record
+            betHistory.push({
+                ...currentCalc,
+                winner: winner,
+                actualNet: actualNet,
+                runningNet: runningNet
+            });
+
+            renderHistory();
+            document.getElementById('historySection').style.display = 'block';
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        function resetHistory() {
+            if (confirm('Clear all history?')) {
+                betHistory = [];
+                runningNet = 0;
+                renderHistory();
+                document.getElementById('historySection').style.display = 'none';
+            }
+        }
+
+        function renderHistory() {
+            const tbody = document.getElementById('historyBody');
+            tbody.innerHTML = '';
+
+            let tVolume = 0;
+            let tNet = 0; // Recalculate total net simply by summing actualNets
+
+            betHistory.forEach((bet, index) => {
+                tVolume += bet.totalStake;
+                tNet += bet.actualNet;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td>
+                    <span style="color:var(--accent-primary)">$${bet.stakeA}</span> / 
+                    <span style="color:var(--accent-secondary)">$${bet.stakeB}</span>
+                </td>
+                <td style="font-weight: 700; color: ${bet.winner === 'A' ? 'var(--accent-primary)' : 'var(--accent-secondary)'}">
+                    ${bet.winner} WON
+                </td>
+                <td class="${bet.actualNet >= 0 ? 'profit-positive' : 'profit-negative'}">
+                    ${formatCurrency(bet.actualNet)}
+                </td>
+                <td style="font-weight:600;">
+                    ${formatCurrency(bet.runningNet)}
+                </td>
+            `;
+                tbody.appendChild(tr);
+            });
+
+            const elTotalNet = document.getElementById('histTotalNet');
+            elTotalNet.textContent = formatCurrency(tNet);
+            elTotalNet.className = tNet >= 0 ? 'profit-positive' : 'profit-negative';
+
+            document.getElementById('histVolume').textContent = formatCurrency(tVolume);
+        }
+
+        // Initial calc
+        calculate();
+
+    </script>
+
+</body>
+
+</html>
